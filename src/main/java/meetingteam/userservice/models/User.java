@@ -9,7 +9,6 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Entity
 @Data
@@ -17,15 +16,14 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class User {
-    @Id @UuidGenerator
+    @Id
     private String id;
 
     @Column(nullable=false, unique=true)
     private String email;
 
+    @Column(nullable=false)
     private String nickName;
-
-    private String password;
 
     private String urlIcon;
 
@@ -33,19 +31,7 @@ public class User {
 
     private String phoneNumber;
 
-    private String OTPcode; // for change password
-
-    private LocalDateTime OTPtime;
-
-    private Boolean isActivated;
-
     private LocalDateTime lastActive;
 
-    private String status; //ONLINE, OFFLINE
-
-    private String provider;
-
-    public User(String id) {
-        this.id=id;
-    }
+    private Boolean isOnline;
 }
