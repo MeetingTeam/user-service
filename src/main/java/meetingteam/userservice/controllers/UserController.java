@@ -3,12 +3,11 @@ package meetingteam.userservice.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import meetingteam.userservice.dtos.User.CreateUserDto;
+import meetingteam.userservice.dtos.User.UpdateUserDto;
 import meetingteam.userservice.services.UserService;
+import org.hibernate.validator.constraints.UUID;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
@@ -17,8 +16,23 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity addUser(@Valid @RequestBody CreateUserDto userDto){
+    public ResponseEntity addUser(
+            @Valid @RequestBody CreateUserDto userDto){
         userService.addUser(userDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping
+    public ResponseEntity updateUser(
+            @Valid @RequestBody UpdateUserDto userDto){
+        return ResponseEntity.ok(userService.updateUser(userDto));
+    }
+
+    @PostMapping("/private/user-status")
+    public ResponseEntity changeUserStatus(
+            @RequestParam("userId") @UUID String userId,
+            @RequestParam("isOnline") boolean isOnline){
+        userService.changeUserStatus(userId, isOnline);
         return ResponseEntity.ok().build();
     }
 }
