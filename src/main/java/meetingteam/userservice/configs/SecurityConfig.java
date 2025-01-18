@@ -39,12 +39,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverterFor() {
+    public JwtAuthenticationConverter jwtAuthenticationConverterForCognito() {
         Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter = jwt -> {
-            Map<String, Collection<String>> realmAccess = jwt.getClaim("realm_access");
-            Collection<String> roles = realmAccess.get("roles");
-            Collection<GrantedAuthority>  result= roles.stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+            Collection<String> groups = jwt.getClaim("cognito:groups");
+            Collection<GrantedAuthority>  result= groups.stream()
+                    .map(group -> new SimpleGrantedAuthority("ROLE_" + group))
                     .collect(Collectors.toList());
             return result;
         };

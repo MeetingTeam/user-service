@@ -31,6 +31,8 @@ public class User {
 
     private String phoneNumber;
 
+    private Boolean gender;
+
     private LocalDateTime lastActive;
 
     private Boolean isOnline;
