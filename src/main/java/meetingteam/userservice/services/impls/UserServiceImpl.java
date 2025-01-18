@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService {
     private String cognitoUserPoolId;
 
     @Transactional
-    public void registerUser(CreateUserDto userDto){
+    public void addUser(CreateUserDto userDto){
         String userId= AuthUtil.getUserId();
 
         var getUserRequest= AdminGetUserRequest.builder()
