@@ -1,18 +1,20 @@
-package meetingteam.userservice.exceptions;
+package meetingteam.userservice;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import meetingteam.userservice.dtos.ErrorDto;
+import meetingteam.commonlibrary.dtos.ErrorDto;
+import meetingteam.commonlibrary.exceptions.BadRequestException;
+import meetingteam.commonlibrary.exceptions.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -31,10 +33,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({AccessDeniedException.class})
+    public ResponseEntity<ErrorDto> handleAccessDeniedException(Exception ex){
+        LOGGER.error(ex.getMessage());
+        var errorDto=new ErrorDto(HttpStatus.FORBIDDEN,"Access denied", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorDto);
+    }
+
+    @ExceptionHandler({UnauthorizedException.class})
     public ResponseEntity<ErrorDto> handleUnAuthorizedException(Exception ex){
         LOGGER.error(ex.getMessage());
-        var errorDto=new ErrorDto(HttpStatus.UNAUTHORIZED,"Access Denied", ex.getMessage());
-        return ResponseEntity.status(403).body(errorDto);
+        var errorDto=new ErrorDto(HttpStatus.UNAUTHORIZED,"Unauthorized", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorDto);
     }
 
     @ExceptionHandler(BindException.class)

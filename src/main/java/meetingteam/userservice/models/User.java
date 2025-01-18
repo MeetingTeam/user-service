@@ -27,11 +27,11 @@ public class User {
 
     private String urlIcon;
 
+    private Boolean gender;
+
     private LocalDate birthday;
 
     private String phoneNumber;
-
-    private Boolean gender;
 
     private LocalDateTime lastActive;
 

@@ -15,7 +15,7 @@ public class CreateUserDto {
 
     private LocalDate birthday;
 
-    private Boolean gender;
+    private Boolean gender=true;
 
     @Pattern(regexp = "\\+?[0-9. ()-]{7,25}", message = "Invalid phone number")
     private String phoneNumber;
