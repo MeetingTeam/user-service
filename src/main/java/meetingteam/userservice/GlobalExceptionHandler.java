@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
@@ -67,6 +68,13 @@ public class GlobalExceptionHandler {
         }
         var errorDto= new ErrorDto(HttpStatus.BAD_REQUEST, "Validation error","", errors);
         return ResponseEntity.badRequest().body(errorDto);
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorDto> handleHandlerMethodValidationException(HandlerMethodValidationException ex){
+        LOGGER.error(ex.getMessage());
+        var errorDto= new ErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "Unknown error",ex.getReason());
+        return ResponseEntity.status(500).body(errorDto);
     }
 
     @ExceptionHandler(Exception.class)

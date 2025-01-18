@@ -61,9 +61,10 @@ public class UserServiceImpl implements UserService {
         String userId= AuthUtil.getUserId();
         var user= userRepository.findById(userId).orElseThrow(()->new BadRequestException("User not found"));
 
-        if(userDto.getDoesChangeAvatar()!=null){
-            String preSignedUrl= fileService.generatePreSignedUrl("users","avatar", false);
-            user.setUrlIcon(preSignedUrl);
+        String preSignedUrl=null;
+        if(userDto.getIconFilename()!=null){
+            preSignedUrl= fileService.generatePreSignedUrl("users",userDto.getIconFilename(), user.getUrlIcon());
+            user.setUrlIcon(preSignedUrl.split("\\?")[0]);
         }
         user.setNickName(userDto.getNickName());
         user.setGender(userDto.getGender());
@@ -71,12 +72,22 @@ public class UserServiceImpl implements UserService {
         user.setPhoneNumber(userDto.getPhoneNumber());
 
         var savedUser= userRepository.save(user);
-        return modelMapper.map(savedUser, ResUserDto.class);
+
+        var resUserDto=modelMapper.map(savedUser, ResUserDto.class);
+        if(preSignedUrl!=null) resUserDto.setUrlIcon(preSignedUrl);
+        return resUserDto;
     }
 
     public void changeUserStatus(String userId, boolean isOnline){
         User user = userRepository.findById(userId).orElseThrow(()->new BadRequestException("User not found"));
         user.setIsOnline(isOnline);
         userRepository.save(user);
+    }
+
+    public ResUserDto getUserInfo(){
+        String userId= AuthUtil.getUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(()->new BadRequestException("User not found"));
+        return modelMapper.map(user, ResUserDto.class);
     }
 }

@@ -30,9 +30,14 @@ public class UserController {
 
     @PostMapping("/private/user-status")
     public ResponseEntity changeUserStatus(
-            @RequestParam("userId") @UUID String userId,
+            @RequestParam("userId") String userId,
             @RequestParam("isOnline") boolean isOnline){
         userService.changeUserStatus(userId, isOnline);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping
+    public ResponseEntity getUserInfo(){
+        return ResponseEntity.ok(userService.getUserInfo());
     }
 }

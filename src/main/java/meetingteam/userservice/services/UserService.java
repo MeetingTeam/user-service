@@ -8,4 +8,5 @@ public interface UserService {
     void addUser(CreateUserDto userDto);
     ResUserDto updateUser(UpdateUserDto userDto);
     void changeUserStatus(String userId, boolean isOnline);
+    ResUserDto getUserInfo();
 }

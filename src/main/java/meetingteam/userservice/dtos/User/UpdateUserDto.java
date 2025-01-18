@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class UpdateUserDto extends CreateUserDto {
-    private Boolean doesChangeAvatar;
+    private String iconFilename;
 }

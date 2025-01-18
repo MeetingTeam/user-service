@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 
 import java.time.Duration;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -28,9 +29,12 @@ public class FileServiceImpl implements FileService {
     @Value("${s3.bucket-name}")
     private String bucketName;
 
-    public String generatePreSignedUrl(String folder,String filename, boolean addPrefix){
-        String objectKey= folder+"/"+filename;
-        if(addPrefix) objectKey += "_"+rand.nextInt(10000);
+    public String generatePreSignedUrl(String folder,String newFile, String oldUrl){
+        String filename= newFile.substring(0,newFile.lastIndexOf("."));
+        String filetype=newFile.substring(newFile.lastIndexOf(".")+1);
+        String objectKey = filename+"_"+rand.nextInt(10000)+"."+filetype;
+
+        if(oldUrl!=null) CompletableFuture.runAsync(()->deleteFile(oldUrl));
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
