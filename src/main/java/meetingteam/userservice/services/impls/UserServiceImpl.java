@@ -3,6 +3,7 @@ package meetingteam.userservice.services.impls;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import meetingteam.commonlibrary.exceptions.BadRequestException;
+import meetingteam.commonlibrary.exceptions.InternalServerException;
 import meetingteam.commonlibrary.utils.AuthUtil;
 import meetingteam.userservice.dtos.User.CreateUserDto;
 import meetingteam.userservice.dtos.User.ResUserDto;
@@ -28,33 +29,32 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
-    @Value("${cognito.user-pool-id}")
-    private String cognitoUserPoolId;
-    @Value("${s3.bucket-name}")
-    private String bucketUrl;
+    @Value("${cognito.client-id}")
+    private String cognitoClientId;
 
     @Transactional
     public void addUser(CreateUserDto userDto){
-        String userId= AuthUtil.getUserId();
+        try {
+            SignUpRequest signUpRequest = SignUpRequest.builder()
+                    .clientId(cognitoClientId)
+                    .username(userDto.getEmail())
+                    .password(userDto.getPassword())
+                    .build();
+            SignUpResponse signUpResponse = cognitoClient.signUp(signUpRequest);
+            String userId= signUpResponse.userSub();
 
-        var getUserRequest= AdminGetUserRequest.builder()
-                .userPoolId(cognitoUserPoolId)
-                .username(userId)
-                .build();
-        var getUserResponse= cognitoClient.adminGetUser(getUserRequest);
-
-        String email= null;
-        for(var attr: getUserResponse.userAttributes()){
-            if(attr.name().equals("email")) email= attr.value();
+            User user = modelMapper.map(userDto, User.class);
+            user.setId(userId);
+            user.setIsOnline(false);
+            user.setLastActive(LocalDateTime.now());
+            userRepository.save(user);
+        } catch (UsernameExistsException e) {
+            throw new BadRequestException("Email already exists");
+        } catch (InvalidParameterException e) {
+            throw new BadRequestException("Invalid parameters");
+        } catch (Exception e) {
+            throw new InternalServerException("Sign up failed. Please try again");
         }
-        if(email == null) throw new BadRequestException("Email is required");
-
-        User user = modelMapper.map(userDto, User.class);
-        user.setId(userId);
-        user.setEmail(email);
-        user.setIsOnline(false);
-        user.setLastActive(LocalDateTime.now());
-        userRepository.save(user);
     }
 
     public ResUserDto updateUser(UpdateUserDto userDto){

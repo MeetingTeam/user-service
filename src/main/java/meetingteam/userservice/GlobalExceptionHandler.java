@@ -5,11 +5,11 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import meetingteam.commonlibrary.dtos.ErrorDto;
 import meetingteam.commonlibrary.exceptions.BadRequestException;
-import meetingteam.commonlibrary.exceptions.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorDto);
     }
 
-    @ExceptionHandler({UnauthorizedException.class})
+    @ExceptionHandler({AuthorizationDeniedException.class})
     public ResponseEntity<ErrorDto> handleUnAuthorizedException(Exception ex){
         LOGGER.error(ex.getMessage());
         var errorDto=new ErrorDto(HttpStatus.UNAUTHORIZED,"Unauthorized", ex.getMessage());

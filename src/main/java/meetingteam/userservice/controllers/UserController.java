@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import meetingteam.userservice.dtos.User.CreateUserDto;
 import meetingteam.userservice.dtos.User.UpdateUserDto;
 import meetingteam.userservice.services.UserService;
-import org.hibernate.validator.constraints.UUID;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,6 +22,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PutMapping
     public ResponseEntity updateUser(
             @Valid @RequestBody UpdateUserDto userDto){
@@ -36,6 +37,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping
     public ResponseEntity getUserInfo(){
         return ResponseEntity.ok(userService.getUserInfo());
