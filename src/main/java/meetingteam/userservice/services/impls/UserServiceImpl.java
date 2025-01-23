@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Random;
 
 @Service
@@ -26,7 +27,7 @@ import java.util.Random;
 public class UserServiceImpl implements UserService {
     private final CognitoIdentityProviderClient cognitoClient;
     private final FileService fileService;
-    private final UserRepository userRepository;
+    private final UserRepository userRepo;
     private final ModelMapper modelMapper;
 
     @Value("${cognito.client-id}")
@@ -47,7 +48,7 @@ public class UserServiceImpl implements UserService {
             user.setId(userId);
             user.setIsOnline(false);
             user.setLastActive(LocalDateTime.now());
-            userRepository.save(user);
+            userRepo.save(user);
         } catch (UsernameExistsException e) {
             throw new BadRequestException("Email already exists");
         } catch (InvalidParameterException e) {
@@ -59,7 +60,7 @@ public class UserServiceImpl implements UserService {
 
     public ResUserDto updateUser(UpdateUserDto userDto){
         String userId= AuthUtil.getUserId();
-        var user= userRepository.findById(userId).orElseThrow(()->new BadRequestException("User not found"));
+        var user= userRepo.findById(userId).orElseThrow(()->new BadRequestException("User not found"));
 
         String preSignedUrl=null;
         if(userDto.getIconFilename()!=null){
@@ -71,7 +72,7 @@ public class UserServiceImpl implements UserService {
         user.setBirthday(userDto.getBirthday());
         user.setPhoneNumber(userDto.getPhoneNumber());
 
-        var savedUser= userRepository.save(user);
+        var savedUser= userRepo.save(user);
 
         var resUserDto=modelMapper.map(savedUser, ResUserDto.class);
         if(preSignedUrl!=null) resUserDto.setUrlIcon(preSignedUrl);
@@ -79,15 +80,21 @@ public class UserServiceImpl implements UserService {
     }
 
     public void changeUserStatus(String userId, boolean isOnline){
-        User user = userRepository.findById(userId).orElseThrow(()->new BadRequestException("User not found"));
+        User user = userRepo.findById(userId).orElseThrow(()->new BadRequestException("User not found"));
         user.setIsOnline(isOnline);
-        userRepository.save(user);
+        userRepo.save(user);
     }
 
     public ResUserDto getUserInfo(){
         String userId= AuthUtil.getUserId();
-        User user = userRepository.findById(userId)
+        User user = userRepo.findById(userId)
                 .orElseThrow(()->new BadRequestException("User not found"));
         return modelMapper.map(user, ResUserDto.class);
+    }
+
+    public List<ResUserDto> getUsersByIds(List<String> userIds){
+        return userRepo.findByIds(userIds).stream()
+                .map(user->modelMapper.map(user, ResUserDto.class))
+                .toList();
     }
 }

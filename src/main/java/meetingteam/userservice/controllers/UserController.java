@@ -3,11 +3,15 @@ package meetingteam.userservice.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import meetingteam.userservice.dtos.User.CreateUserDto;
+import meetingteam.userservice.dtos.User.ResUserDto;
 import meetingteam.userservice.dtos.User.UpdateUserDto;
 import meetingteam.userservice.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -41,5 +45,12 @@ public class UserController {
     @GetMapping
     public ResponseEntity getUserInfo(){
         return ResponseEntity.ok(userService.getUserInfo());
+    }
+
+    @GetMapping("/private/by-ids")
+    public List<ResUserDto> getUsersByIds(
+            @RequestParam("ids") String userIdsStr){
+        List<String> userIds= Arrays.stream(userIdsStr.split(",")).toList();
+        return userService.getUsersByIds(userIds);
     }
 }
