@@ -47,10 +47,10 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserInfo());
     }
 
-    @GetMapping("/private/by-ids")
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/private/by-ids")
     public List<ResUserDto> getUsersByIds(
-            @RequestParam("ids") String userIdsStr){
-        List<String> userIds= Arrays.stream(userIdsStr.split(",")).toList();
+            @RequestBody List<String> userIds){
         return userService.getUsersByIds(userIds);
     }
 }

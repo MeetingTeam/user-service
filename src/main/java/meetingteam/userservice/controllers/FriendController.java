@@ -2,6 +2,7 @@ package meetingteam.userservice.controllers;
 
 import lombok.RequiredArgsConstructor;
 import meetingteam.userservice.services.FriendService;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,5 +26,12 @@ public class FriendController {
             @PathVariable("friendId") String friendId){
         friendService.unfriend(friendId);
         return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @GetMapping("/private/is-friend")
+    public ResponseEntity<Boolean> unfriend(
+            @RequestParam("userId") String userId,
+            @RequestParam("friendId") String friendId){
+        return ResponseEntity.ok(friendService.isFriend(userId, friendId));
     }
 }

@@ -15,12 +15,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class FriendServiceImpl implements FriendService {
-    private final FriendRelationRepository frRepository;
+    private final FriendRelationRepository friendRelationRepo;
     private final ModelMapper modelMapper;
 
     public List<ResUserDto> getFriends(){
         String userId= AuthUtil.getUserId();
-        var friendsList= frRepository.getFriends(userId);
+        var friendsList= friendRelationRepo.getFriends(userId);
         return friendsList.stream()
                 .map(friend -> modelMapper.map(friend, ResUserDto.class))
                 .toList();
@@ -28,8 +28,12 @@ public class FriendServiceImpl implements FriendService {
     @Transactional
     public void unfriend(String friendId) {
         String userId= AuthUtil.getUserId();
-        frRepository.updateFriendStatus(FriendStatus.UNFRIEND,userId, friendId);
+        friendRelationRepo.updateFriendStatus(FriendStatus.UNFRIEND,userId, friendId);
 //        socketTemplate.sendUser(friendId,"/deleteFriend",userId);
 //        socketTemplate.sendUser(userId,"/deleteFriend", friendId);
+    }
+
+    public boolean isFriend(String userId, String friendId){
+        return friendRelationRepo.havingFriend(userId, friendId)>0;
     }
 }
