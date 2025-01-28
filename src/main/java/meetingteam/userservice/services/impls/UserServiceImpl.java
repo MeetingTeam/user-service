@@ -64,13 +64,13 @@ public class UserServiceImpl implements UserService {
 
         String preSignedUrl=null;
         if(userDto.getIconFilename()!=null){
-            preSignedUrl= fileService.generatePreSignedUrl("users",userDto.getIconFilename(), user.getUrlIcon());
+            preSignedUrl= fileService.generatePreSignedUrl(userDto.getIconFilename(), user.getUrlIcon());
             user.setUrlIcon(preSignedUrl.split("\\?")[0]);
         }
-        user.setNickName(userDto.getNickName());
-        user.setGender(userDto.getGender());
-        user.setBirthday(userDto.getBirthday());
-        user.setPhoneNumber(userDto.getPhoneNumber());
+        if(userDto.getNickName()!=null) user.setNickName(userDto.getNickName());
+        if(userDto.getGender()!=null) user.setGender(userDto.getGender());
+        if(userDto.getBirthday()!=null) user.setBirthday(userDto.getBirthday());
+        if(userDto.getPhoneNumber()!=null) user.setPhoneNumber(userDto.getPhoneNumber());
 
         var savedUser= userRepo.save(user);
 

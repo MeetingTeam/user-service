@@ -26,4 +26,10 @@ public class FriendRelation {
     @Column(nullable=false)
     @Enumerated(EnumType.STRING)
     private FriendStatus status;
+
+    public FriendRelation(User friend1, User friend2, FriendStatus status) {
+        this.friend1 = friend1;
+        this.friend2 = friend2;
+        this.status = status;
+    }
 }

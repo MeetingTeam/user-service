@@ -34,6 +34,7 @@ public class FriendServiceImpl implements FriendService {
     }
 
     public boolean isFriend(String userId, String friendId){
+        var result=friendRelationRepo.havingFriend(userId,friendId);
         return friendRelationRepo.havingFriend(userId, friendId)>0;
     }
 }

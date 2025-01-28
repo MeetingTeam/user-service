@@ -20,21 +20,21 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity addUser(
+    public ResponseEntity<ResUserDto> addUser(
             @Valid @RequestBody CreateUserDto userDto){
         userService.addUser(userDto);
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("isAuthenticated()")
-    @PutMapping
-    public ResponseEntity updateUser(
+    @PatchMapping
+    public ResponseEntity<ResUserDto> updateUser(
             @Valid @RequestBody UpdateUserDto userDto){
         return ResponseEntity.ok(userService.updateUser(userDto));
     }
 
     @PostMapping("/private/user-status")
-    public ResponseEntity changeUserStatus(
+    public ResponseEntity<ResUserDto> changeUserStatus(
             @RequestParam("userId") String userId,
             @RequestParam("isOnline") boolean isOnline){
         userService.changeUserStatus(userId, isOnline);
@@ -43,14 +43,14 @@ public class UserController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public ResponseEntity getUserInfo(){
+    public ResponseEntity<ResUserDto> getUserInfo(){
         return ResponseEntity.ok(userService.getUserInfo());
     }
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/private/by-ids")
-    public List<ResUserDto> getUsersByIds(
+    public ResponseEntity<List<ResUserDto>> getUsersByIds(
             @RequestBody List<String> userIds){
-        return userService.getUsersByIds(userIds);
+        return ResponseEntity.ok(userService.getUsersByIds(userIds));
     }
 }

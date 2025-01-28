@@ -29,7 +29,7 @@ public class FriendController {
     }
 
     @GetMapping("/private/is-friend")
-    public ResponseEntity<Boolean> unfriend(
+    public ResponseEntity<Boolean> isFriend(
             @RequestParam("userId") String userId,
             @RequestParam("friendId") String friendId){
         return ResponseEntity.ok(friendService.isFriend(userId, friendId));

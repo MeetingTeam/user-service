@@ -25,10 +25,10 @@ public class FileServiceImpl implements FileService {
     @Value("${s3.bucket-name}")
     private String bucketName;
 
-    public String generatePreSignedUrl(String folder,String newFile, String oldUrl){
+    public String generatePreSignedUrl(String newFile, String oldUrl){
         String filename= newFile.substring(0,newFile.lastIndexOf("."));
         String filetype=newFile.substring(newFile.lastIndexOf(".")+1);
-        String objectKey = filename+"_"+rand.nextInt(10000)+"."+filetype;
+        String objectKey = filename+"_"+rand.nextInt(100000)+"."+filetype;
 
         if(oldUrl!=null) CompletableFuture.runAsync(()->deleteFile(oldUrl));
 
@@ -43,9 +43,12 @@ public class FileServiceImpl implements FileService {
     }
 
     public void deleteFile(String fileUrl){
+        String[] strs= fileUrl.split("/");
+        String key= strs[strs.length-1];
+
         DeleteObjectRequest deleteRequest= DeleteObjectRequest.builder()
                 .bucket(bucketName)
-                .key(fileUrl)
+                .key(key)
                 .build();
         s3Client.deleteObject(deleteRequest);
     }
