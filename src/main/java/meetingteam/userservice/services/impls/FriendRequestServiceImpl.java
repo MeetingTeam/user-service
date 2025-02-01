@@ -4,7 +4,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import meetingteam.commonlibrary.exceptions.BadRequestException;
 import meetingteam.commonlibrary.utils.AuthUtil;
+import meetingteam.userservice.contraints.WebsocketTopics;
 import meetingteam.userservice.dtos.FriendRequest.ResFriendRequestDto;
+import meetingteam.userservice.dtos.User.ResUserDto;
 import meetingteam.userservice.models.FriendRelation;
 import meetingteam.userservice.models.FriendRequest;
 import meetingteam.userservice.models.User;
@@ -13,7 +15,9 @@ import meetingteam.userservice.repositories.FriendRelationRepository;
 import meetingteam.userservice.repositories.FriendRequestRepository;
 import meetingteam.userservice.repositories.UserRepository;
 import meetingteam.userservice.services.FriendRequestService;
+import meetingteam.userservice.services.RabbitmqService;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,6 +29,7 @@ public class FriendRequestServiceImpl implements FriendRequestService {
     private final FriendRequestRepository friendRequestRepo;
     private final FriendRelationRepository friendRelationRepo;
     private final UserRepository userRepo;
+    private final RabbitmqService rabbitmqService;
     private final ModelMapper modelMapper;
 
     @Override
@@ -37,6 +42,8 @@ public class FriendRequestServiceImpl implements FriendRequestService {
 
         if(friendRelationRepo.havingFriend(userId,recipient.getId())>0)
             throw new BadRequestException("The owner of this email has already been your friend");
+        if(friendRequestRepo.existsBySenderAndRecipient(userRepo.getById(userId), recipient))
+            throw new BadRequestException("You have already sent a friend request");
 
         var request= FriendRequest.builder()
                 .sender(userRepo.getById(userId))
@@ -45,8 +52,9 @@ public class FriendRequestServiceImpl implements FriendRequestService {
                 .createdAt(LocalDateTime.now())
                 .build();
         friendRequestRepo.save(request);
-//        socketTemplate.sendUser(userId,"/addFriendRequest",message);
-//        socketTemplate.sendUser(recipient.getId(),"/addFriendRequest",message);
+
+        var requestDto= modelMapper.map(request, ResFriendRequestDto.class);
+        rabbitmqService.sendToUser(recipient.getId(),WebsocketTopics.NewFriendRequest,requestDto);
     }
 
     @Transactional
@@ -69,24 +77,21 @@ public class FriendRequestServiceImpl implements FriendRequestService {
 
             friendRequestRepo.deleteById(requestId);
 
-//        socketTemplate.sendUser(message.getSender().getId(),"/updateFriends",userConverter.convertUserToDTO(u));
-//        socketTemplate.sendUser(message.getRecipient().getId(),"/updateFriends",userConverter.convertUserToDTO(message.getSender()));
-//
-//        socketTemplate.sendUser(message.getSender().getId(),"/deleteFriendRequest",requestId);
-//        socketTemplate.sendUser(message.getRecipient().getId(),"/deleteFriendRequest",requestId);
-        }
-        else {
-            // update request
+            var senderDto= modelMapper.map(request.getSender(), ResUserDto.class);
+            var recipientDto= modelMapper.map(request.getSender(), ResUserDto.class);
+            rabbitmqService.sendToUser(request.getSender().getId(), WebsocketTopics.UpdateFriend, recipientDto);
+            rabbitmqService.sendToUser(request.getRecipient().getId(),WebsocketTopics.UpdateFriend, senderDto);
         }
     }
 
     @Override
     public void deleteFriendRequest(String requestId) {
         var request= friendRequestRepo.findById(requestId).orElseThrow(()->new BadRequestException("Request not found"));
+        String userId= AuthUtil.getUserId();
+        if(!request.getSender().getId().equals(userId))
+            throw new AccessDeniedException("You don't have permissions to delete this request");
 
         friendRequestRepo.deleteById(requestId);
-//        socketTemplate.sendUser(request.getSender().getId(),"/deleteFriendRequest",requestId);
-//        socketTemplate.sendUser(request.getRecipient().getId(),"/deleteFriendRequest",requestId);
     }
 
     @Override

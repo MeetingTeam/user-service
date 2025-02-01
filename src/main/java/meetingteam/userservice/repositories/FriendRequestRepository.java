@@ -1,6 +1,7 @@
 package meetingteam.userservice.repositories;
 
 import meetingteam.userservice.models.FriendRequest;
+import meetingteam.userservice.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -14,4 +15,6 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, St
 
     @Query("select fr from FriendRequest fr where fr.sender.id=?1")
     List<FriendRequest> getSentRequests(String userId);
+
+    boolean existsBySenderAndRecipient(User sender, User recipient);
 }

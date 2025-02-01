@@ -1,5 +1,6 @@
 package meetingteam.userservice;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.nio.file.AccessDeniedException;
@@ -75,6 +77,21 @@ public class GlobalExceptionHandler {
         LOGGER.error(ex.getMessage());
         var errorDto= new ErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "Unknown error",ex.getReason());
         return ResponseEntity.status(500).body(errorDto);
+    }
+
+    @ExceptionHandler(RestClientResponseException.class)
+    public ResponseEntity<ErrorDto> handleRestClientResponseException(RestClientResponseException ex){
+        LOGGER.error(ex.getMessage());
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ErrorDto errorDto = objectMapper.readValue(ex.getResponseBodyAsString(), ErrorDto.class);
+            return ResponseEntity.status(errorDto.statusCode()).body(errorDto);
+        } catch (Exception parseException) {
+            LOGGER.error("Failed to parse error response: " + parseException.getMessage());
+            var errorDto= new ErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, "Unknown error",parseException.getMessage());
+            return ResponseEntity.status(400).body(errorDto);
+        }
     }
 
     @ExceptionHandler(Exception.class)
