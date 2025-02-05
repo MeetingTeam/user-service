@@ -9,7 +9,8 @@ import java.util.List;
 public interface UserService {
     void addUser(CreateUserDto userDto);
     ResUserDto updateUser(UpdateUserDto userDto);
-    void changeUserStatus(String userId, boolean isOnline);
+    void changeUserStatus(boolean isOnline);
     ResUserDto getUserInfo();
     List<ResUserDto> getUsersByIds(List<String> userIds);
+    String getEmail();
 }

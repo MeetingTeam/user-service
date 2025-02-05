@@ -5,12 +5,15 @@ import lombok.RequiredArgsConstructor;
 import meetingteam.commonlibrary.exceptions.BadRequestException;
 import meetingteam.commonlibrary.exceptions.InternalServerException;
 import meetingteam.commonlibrary.utils.AuthUtil;
+import meetingteam.userservice.contraints.WebsocketTopics;
 import meetingteam.userservice.dtos.User.CreateUserDto;
 import meetingteam.userservice.dtos.User.ResUserDto;
 import meetingteam.userservice.dtos.User.UpdateUserDto;
 import meetingteam.userservice.models.User;
+import meetingteam.userservice.repositories.FriendRelationRepository;
 import meetingteam.userservice.repositories.UserRepository;
 import meetingteam.userservice.services.FileService;
+import meetingteam.userservice.services.RabbitmqService;
 import meetingteam.userservice.services.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +30,9 @@ import java.util.Random;
 public class UserServiceImpl implements UserService {
     private final CognitoIdentityProviderClient cognitoClient;
     private final FileService fileService;
+    private final RabbitmqService rabbitmqService;
     private final UserRepository userRepo;
+    private final FriendRelationRepository friendRelationRepo;
     private final ModelMapper modelMapper;
 
     @Value("${cognito.client-id}")
@@ -76,13 +81,27 @@ public class UserServiceImpl implements UserService {
 
         var resUserDto=modelMapper.map(savedUser, ResUserDto.class);
         if(preSignedUrl!=null) resUserDto.setUrlIcon(preSignedUrl);
+
+        var friendIds= friendRelationRepo.getFriendsIds(userId);
+        for(var friendId: friendIds){
+            rabbitmqService.sendToUser(friendId, WebsocketTopics.AddOrUpdateFriend, resUserDto);
+        }
+
         return resUserDto;
     }
 
-    public void changeUserStatus(String userId, boolean isOnline){
+    public void changeUserStatus(boolean isOnline){
+        String userId= AuthUtil.getUserId();
         User user = userRepo.findById(userId).orElseThrow(()->new BadRequestException("User not found"));
         user.setIsOnline(isOnline);
+        user.setLastActive(LocalDateTime.now());
         userRepo.save(user);
+        var resUserDto=modelMapper.map(user, ResUserDto.class);
+
+        var friendIds= friendRelationRepo.getFriendsIds(userId);
+        for(var friendId: friendIds){
+            rabbitmqService.sendToUser(friendId, WebsocketTopics.AddOrUpdateFriend, resUserDto);
+        }
     }
 
     public ResUserDto getUserInfo(){
@@ -96,5 +115,10 @@ public class UserServiceImpl implements UserService {
         return userRepo.findByIds(userIds).stream()
                 .map(user->modelMapper.map(user, ResUserDto.class))
                 .toList();
+    }
+
+    public String getEmail(){
+        String userId= AuthUtil.getUserId();
+        return userRepo.findEmailById(userId);
     }
 }

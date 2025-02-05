@@ -79,8 +79,8 @@ public class FriendRequestServiceImpl implements FriendRequestService {
 
             var senderDto= modelMapper.map(request.getSender(), ResUserDto.class);
             var recipientDto= modelMapper.map(request.getSender(), ResUserDto.class);
-            rabbitmqService.sendToUser(request.getSender().getId(), WebsocketTopics.UpdateFriend, recipientDto);
-            rabbitmqService.sendToUser(request.getRecipient().getId(),WebsocketTopics.UpdateFriend, senderDto);
+            rabbitmqService.sendToUser(request.getSender().getId(), WebsocketTopics.AddOrUpdateFriend, recipientDto);
+            rabbitmqService.sendToUser(request.getRecipient().getId(),WebsocketTopics.AddOrUpdateFriend, senderDto);
         }
     }
 

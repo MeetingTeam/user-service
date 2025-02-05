@@ -33,11 +33,11 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(userDto));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/private/user-status")
     public ResponseEntity<ResUserDto> changeUserStatus(
-            @RequestParam("userId") String userId,
             @RequestParam("isOnline") boolean isOnline){
-        userService.changeUserStatus(userId, isOnline);
+        userService.changeUserStatus(isOnline);
         return ResponseEntity.ok().build();
     }
 
@@ -52,5 +52,11 @@ public class UserController {
     public ResponseEntity<List<ResUserDto>> getUsersByIds(
             @RequestBody List<String> userIds){
         return ResponseEntity.ok(userService.getUsersByIds(userIds));
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/private/email")
+    public ResponseEntity<String> getEmail(){
+        return ResponseEntity.ok(userService.getEmail());
     }
 }
