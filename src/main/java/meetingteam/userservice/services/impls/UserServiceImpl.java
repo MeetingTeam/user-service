@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import meetingteam.commonlibrary.exceptions.BadRequestException;
 import meetingteam.commonlibrary.exceptions.InternalServerException;
 import meetingteam.commonlibrary.utils.AuthUtil;
+import meetingteam.commonlibrary.utils.FileUtil;
 import meetingteam.userservice.contraints.WebsocketTopics;
 import meetingteam.userservice.dtos.User.CreateUserDto;
 import meetingteam.userservice.dtos.User.ResUserDto;
@@ -37,6 +38,8 @@ public class UserServiceImpl implements UserService {
 
     @Value("${cognito.client-id}")
     private String cognitoClientId;
+    @Value("${s3.url}")
+    private String s3BaseUrl;
 
     @Transactional
     public void addUser(CreateUserDto userDto){
@@ -68,9 +71,14 @@ public class UserServiceImpl implements UserService {
         var user= userRepo.findById(userId).orElseThrow(()->new BadRequestException("User not found"));
 
         String preSignedUrl=null;
-        if(userDto.getIconFilename()!=null){
-            preSignedUrl= fileService.generatePreSignedUrl(userDto.getIconFilename(), user.getUrlIcon());
-            user.setUrlIcon(preSignedUrl.split("\\?")[0]);
+        if(userDto.getUrlIcon()!=null) {
+            if(!userDto.getUrlIcon().startsWith(s3BaseUrl))
+                throw new BadRequestException("Invalid url icon");
+            String iconFilename=userDto.getUrlIcon().substring(s3BaseUrl.length());
+            if(!FileUtil.isImageUrl(iconFilename))
+                throw new BadRequestException("Only support image url for avatar");
+            if(user.getUrlIcon()!=null) fileService.deleteFile(user.getUrlIcon());
+            user.setUrlIcon(userDto.getUrlIcon());
         }
         if(userDto.getNickName()!=null) user.setNickName(userDto.getNickName());
         if(userDto.getGender()!=null) user.setGender(userDto.getGender());

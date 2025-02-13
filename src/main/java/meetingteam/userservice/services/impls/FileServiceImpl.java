@@ -17,30 +17,10 @@ import java.util.concurrent.CompletableFuture;
 @Service
 @RequiredArgsConstructor
 public class FileServiceImpl implements FileService {
-    private final S3Presigner s3Presigner;
     private final S3Client s3Client;
-
-    private Random rand = new Random();
 
     @Value("${s3.bucket-name}")
     private String bucketName;
-
-    public String generatePreSignedUrl(String newFile, String oldUrl){
-        String filename= newFile.substring(0,newFile.lastIndexOf("."));
-        String filetype=newFile.substring(newFile.lastIndexOf(".")+1);
-        String objectKey = filename+"_"+rand.nextInt(100000)+"."+filetype;
-
-        if(oldUrl!=null) CompletableFuture.runAsync(()->deleteFile(oldUrl));
-
-        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(objectKey)
-                .build();
-        PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(r -> r
-                .putObjectRequest(putObjectRequest)
-                .signatureDuration(Duration.ofMinutes(15)));
-        return presignedRequest.url().toString();
-    }
 
     public void deleteFile(String fileUrl){
         String[] strs= fileUrl.split("/");
