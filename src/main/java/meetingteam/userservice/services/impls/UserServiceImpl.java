@@ -13,8 +13,9 @@ import meetingteam.userservice.models.User;
 import meetingteam.userservice.repositories.FriendRelationRepository;
 import meetingteam.userservice.repositories.UserRepository;
 import meetingteam.userservice.services.FileService;
-import meetingteam.userservice.services.RabbitmqService;
 import meetingteam.userservice.services.UserService;
+import meetingteam.userservice.services.WebsocketService;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,14 +24,13 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final CognitoIdentityProviderClient cognitoClient;
     private final FileService fileService;
-    private final RabbitmqService rabbitmqService;
+    private final WebsocketService websocketService;
     private final UserRepository userRepo;
     private final FriendRelationRepository friendRelationRepo;
     private final ModelMapper modelMapper;
@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
 
         var friendIds= friendRelationRepo.getFriendsIds(userId);
         for(var friendId: friendIds){
-            rabbitmqService.sendToUser(friendId, WebsocketTopics.AddOrUpdateFriend, resUserDto);
+            websocketService.addOrUpdateFriend(friendId, resUserDto);
         }
 
         return resUserDto;
@@ -100,7 +100,7 @@ public class UserServiceImpl implements UserService {
 
         var friendIds= friendRelationRepo.getFriendsIds(userId);
         for(var friendId: friendIds){
-            rabbitmqService.sendToUser(friendId, WebsocketTopics.AddOrUpdateFriend, resUserDto);
+            websocketService.addOrUpdateFriend(friendId, resUserDto);
         }
     }
 

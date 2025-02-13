@@ -15,7 +15,8 @@ import meetingteam.userservice.repositories.FriendRelationRepository;
 import meetingteam.userservice.repositories.FriendRequestRepository;
 import meetingteam.userservice.repositories.UserRepository;
 import meetingteam.userservice.services.FriendRequestService;
-import meetingteam.userservice.services.RabbitmqService;
+import meetingteam.userservice.services.WebsocketService;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -29,11 +30,11 @@ public class FriendRequestServiceImpl implements FriendRequestService {
     private final FriendRequestRepository friendRequestRepo;
     private final FriendRelationRepository friendRelationRepo;
     private final UserRepository userRepo;
-    private final RabbitmqService rabbitmqService;
+    private final WebsocketService websocketService;
     private final ModelMapper modelMapper;
 
     @Override
-    public void createFriendRequest(String email, String content) {
+    public ResFriendRequestDto createFriendRequest(String email, String content) {
         User recipient=userRepo.findByEmail(email).orElseThrow(()->new BadRequestException("Sorry!!Double check that the email is correct"));
 
         var userId= AuthUtil.getUserId();
@@ -53,8 +54,7 @@ public class FriendRequestServiceImpl implements FriendRequestService {
                 .build();
         friendRequestRepo.save(request);
 
-        var requestDto= modelMapper.map(request, ResFriendRequestDto.class);
-        rabbitmqService.sendToUser(recipient.getId(),WebsocketTopics.NewFriendRequest,requestDto);
+        return modelMapper.map(request, ResFriendRequestDto.class);
     }
 
     @Transactional
@@ -78,9 +78,10 @@ public class FriendRequestServiceImpl implements FriendRequestService {
             friendRequestRepo.deleteById(requestId);
 
             var senderDto= modelMapper.map(request.getSender(), ResUserDto.class);
-            var recipientDto= modelMapper.map(request.getSender(), ResUserDto.class);
-            rabbitmqService.sendToUser(request.getSender().getId(), WebsocketTopics.AddOrUpdateFriend, recipientDto);
-            rabbitmqService.sendToUser(request.getRecipient().getId(),WebsocketTopics.AddOrUpdateFriend, senderDto);
+            var recipientDto= modelMapper.map(request.getRecipient(), ResUserDto.class);
+            
+            websocketService.addOrUpdateFriend(request.getSender().getId(), recipientDto);
+            websocketService.addOrUpdateFriend(userId, senderDto);
         }
     }
 

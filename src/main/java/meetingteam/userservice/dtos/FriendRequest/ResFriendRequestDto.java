@@ -15,5 +15,7 @@ public class ResFriendRequestDto {
 
     private String content;
 
+    private Boolean isAccepted;
+
     private LocalDateTime createdAt;
 }

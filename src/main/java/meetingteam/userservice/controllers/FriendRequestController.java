@@ -17,10 +17,10 @@ public class FriendRequestController {
     private final FriendRequestService friendRequestService;
 
     @PostMapping
-    public ResponseEntity<Void> createFriendRequest(
+    public ResponseEntity<ResFriendRequestDto> createFriendRequest(
             @RequestBody @Valid CreateRequestDto requestDto){
-        friendRequestService.createFriendRequest(requestDto.getEmail(), requestDto.getContent());
-        return ResponseEntity.ok().build();
+        var friendRequestDto=friendRequestService.createFriendRequest(requestDto.getEmail(), requestDto.getContent());
+        return ResponseEntity.ok(friendRequestDto);
     }
 
     @PostMapping("/accept/{requestId}")
@@ -33,8 +33,8 @@ public class FriendRequestController {
 
     @DeleteMapping("/{requestId}")
     public ResponseEntity<Void> deleteFriendRequest(
-            @PathVariable("requestId") String id){
-        friendRequestService.deleteFriendRequest(id);
+            @PathVariable("requestId") String requestId){
+        friendRequestService.deleteFriendRequest(requestId);
         return ResponseEntity.ok().build();
     }
 

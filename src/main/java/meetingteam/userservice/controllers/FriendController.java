@@ -1,12 +1,15 @@
 package meetingteam.userservice.controllers;
 
 import lombok.RequiredArgsConstructor;
+import meetingteam.commonlibrary.dtos.PagedResponseDto;
+import meetingteam.userservice.dtos.User.ResUserDto;
 import meetingteam.userservice.services.FriendService;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/friend")
@@ -14,18 +17,19 @@ import org.springframework.web.bind.annotation.*;
 public class FriendController {
     private final FriendService friendService;
 
-    @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public ResponseEntity getFriends(){
-        return ResponseEntity.ok(friendService.getFriends());
+    public ResponseEntity<PagedResponseDto<ResUserDto>> getFriends(
+            @RequestParam("pageNo") Integer pageNo,
+            @RequestParam("pageSize") Integer pageSize
+    ){
+        return ResponseEntity.ok(friendService.getFriends(pageNo, pageSize));
     }
 
-    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/unfriend/{friendId}")
-    public ResponseEntity<HttpStatus> unfriend(
+    public ResponseEntity<Void> unfriend(
             @PathVariable("friendId") String friendId){
         friendService.unfriend(friendId);
-        return new ResponseEntity(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/private/is-friend")
@@ -33,5 +37,11 @@ public class FriendController {
             @RequestParam("userId") String userId,
             @RequestParam("friendId") String friendId){
         return ResponseEntity.ok(friendService.isFriend(userId, friendId));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ResUserDto>> searchFriendsByName(
+            @RequestParam("searchName") String searchName){
+        return ResponseEntity.ok(friendService.searchFriendsByName(searchName));
     }
 }
