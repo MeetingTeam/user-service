@@ -1,0 +1,3 @@
+create table friend_request (id varchar(255) not null, content TEXT, created_at datetime(6) not null, recipient_id varchar(255), sender_id varchar(255), primary key (id)) engine=InnoDB;
+alter table friend_request add constraint FK45s7gu2bi5veo0nt5lftvgyf7 foreign key (recipient_id) references user (id);
+alter table friend_request add constraint FK9rnftqmm2lmkhv4xrq8b9lp4f foreign key (sender_id) references user (id);
