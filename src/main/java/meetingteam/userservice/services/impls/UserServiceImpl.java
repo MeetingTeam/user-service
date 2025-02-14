@@ -77,6 +77,7 @@ public class UserServiceImpl implements UserService {
             String iconFilename=userDto.getUrlIcon().substring(s3BaseUrl.length());
             if(!FileUtil.isImageUrl(iconFilename))
                 throw new BadRequestException("Only support image url for avatar");
+            fileService.addIsLinkedTag(iconFilename);
             if(user.getUrlIcon()!=null) fileService.deleteFile(user.getUrlIcon());
             user.setUrlIcon(userDto.getUrlIcon());
         }
