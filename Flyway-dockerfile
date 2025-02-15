@@ -1,0 +1,4 @@
+FROM flyway/flyway
+COPY target/classes/migrations /flyway/sql
+COPY target/classes/flyway.properties /flyway/conf/flyway.conf
+CMD ["migrate"]
