@@ -15,6 +15,7 @@ def githubAccount = 'github'
 def dockerImageName = 'hungtran679/mt_user-service'
 def dockerfilePath = '.'
 
+def migrationPath = 'src/main/resources/migrations'
 def dockerFlywayImageName = 'hungtran679/mt_flyway-user-service'
 
 def sonarCloudOrganization = 'meetingteam'
