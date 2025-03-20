@@ -1,5 +1,5 @@
 def baseRepoUrl = 'https://github.com/MeetingTeam'
-def mainBranch = 'feature/cicd'
+def mainBranch = 'main'
 def testBranch = 'test'
 
 def appRepoName = 'user-service'
