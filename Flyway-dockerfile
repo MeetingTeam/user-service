@@ -1,4 +1,7 @@
-FROM flyway/flyway
+FROM flyway/flyway:11.3.1
+
+# Copy migrations folder
 COPY target/classes/migrations /flyway/sql
-COPY target/classes/flyway.properties /flyway/conf/flyway.conf
-CMD ["migrate"]
+
+# Run migration
+ENTRYPOINT ["flyway","migrate"]
