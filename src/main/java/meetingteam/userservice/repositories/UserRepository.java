@@ -13,6 +13,8 @@ public interface UserRepository extends JpaRepository<User, String> {
     @Query("select u from User u where u.id in ?1")
     List<User> findByIds(List<String> ids);
 
+    boolean existsByEmail(String email);
+
     Optional<User> findByEmail(String email);
 
     @Query("select u.email from User u where u.id=?1")

@@ -1,0 +1,7 @@
+FROM flyway/flyway:11.3.1
+
+# Copy migrations folder
+COPY target/classes/migrations /flyway/sql
+
+# Run migration
+ENTRYPOINT ["flyway","migrate"]

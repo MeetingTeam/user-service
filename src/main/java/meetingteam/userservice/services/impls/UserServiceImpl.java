@@ -38,6 +38,8 @@ public class UserServiceImpl implements UserService {
 
     @Value("${cognito.client-id}")
     private String cognitoClientId;
+    @Value("${cognito.user-pool-id}")
+    private String cognitoPoolId;
     @Value("${s3.url}")
     private String s3BaseUrl;
 
@@ -50,7 +52,7 @@ public class UserServiceImpl implements UserService {
                     .password(userDto.getPassword())
                     .build();
             SignUpResponse signUpResponse = cognitoClient.signUp(signUpRequest);
-            String userId= signUpResponse.userSub();
+            String userId = signUpResponse.userSub();
 
             User user = modelMapper.map(userDto, User.class);
             user.setId(userId);
@@ -58,7 +60,16 @@ public class UserServiceImpl implements UserService {
             user.setLastActive(LocalDateTime.now());
             userRepo.save(user);
         } catch (UsernameExistsException e) {
-            throw new BadRequestException("Email already exists");
+            if(userRepo.existsByEmail(userDto.getEmail()))
+                throw new BadRequestException("Email already exists");
+            else {
+                var deleteUserRequest = AdminDeleteUserRequest.builder()
+                        .userPoolId(cognitoPoolId)
+                        .username(userDto.getEmail())
+                        .build();
+                cognitoClient.adminDeleteUser(deleteUserRequest);
+                throw new InternalServerException("Sign up failed. Please try again");
+            }
         } catch (InvalidParameterException e) {
             throw new BadRequestException("Invalid parameters");
         } catch (Exception e) {
