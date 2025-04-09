@@ -48,18 +48,19 @@ pipeline{
                                                                       usernameVariable: 'GIT_USER'
                                                             )
                                                   ]) {
-                                                           sh """
-                                                                      echo "<settings>
-                                                                                          <servers>
-                                                                                                    <server>
-                                                                                                              <id>github</id>
-                                                                                                              <username>\${GIT_USER}</username>
-                                                                                                              <password>\${GIT_PASS}</password>
-                                                                                                    </server>
-                                                                                          </servers>
-                                                                                </settings>" > /root/.m2/settings.xml
-                                                                      mvn clean test
-                                                           """
+                                                        def settingsXml = """
+                                                              <settings>
+                                                                <servers>
+                                                                  <server>
+                                                                    <id>github</id>
+                                                                    <username>${GIT_USER}</username>
+                                                                    <password>${GIT_PASS}</password>
+                                                                  </server>
+                                                                </servers>
+                                                              </settings>
+                                                            """
+                                                            writeFile file: 'settings.xml', text: settingsXml.trim()
+                                                            sh 'mvn -s settings.xml clean test'
                                                   }                                        
                                         }
                               }
@@ -106,13 +107,24 @@ pipeline{
                                                                       passwordVariable: 'DOCKER_PASS'
                                                             )
                                                   ]) {
-                                                            sh """
-                                                                      echo "{ \\"auths\\": { \\"\${DOCKER_REGISTRY}\\": { \\"auth\\": \\"\$(echo -n \${DOCKER_USER}:\${DOCKER_PASS} | base64)\\" } } }" > /kaniko/.docker/config.json
-                                                                      /kaniko/executor \
-                                                                      --context=${dockerfilePath} \
-                                                                      --dockerfile=${dockerfilePath}/Dockerfile \
-                                                                      --destination=\${DOCKER_REGISTRY}/${dockerImageName}:${version} \
-                                                            """
+                                                          def authString = "${DOCKER_USER}:${DOCKER_PASS}".bytes.encodeBase64().toString()
+                                                          def dockerConfig = """
+                                                          {
+                                                            "auths": {
+                                                              "${DOCKER_REGISTRY}": {
+                                                                "auth": "${authString}"
+                                                              }
+                                                            }
+                                                          }
+                                                          """
+                                                          writeFile file: '/kaniko/.docker/config.json', text: dockerConfig.trim()
+                                                          
+                                                          sh """
+                                                            /kaniko/executor \
+                                                              --context=${dockerfilePath} \
+                                                              --dockerfile=${dockerfilePath}/Dockerfile \
+                                                              --destination=${DOCKER_REGISTRY}/${dockerImageName}:${version}
+                                                          """
                                                   }
                                         }
                               }
