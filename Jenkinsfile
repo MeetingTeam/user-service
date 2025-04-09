@@ -102,7 +102,7 @@ pipeline{
                     //           }
                     // }
                     stage('Build and push docker image'){
-                              when{ branch mainBranch }
+                              // when{ branch mainBranch }
                               steps{
                                         container('kaniko'){
                                                    withCredentials([
