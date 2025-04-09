@@ -48,7 +48,8 @@ pipeline{
                                                                       usernameVariable: 'GIT_USER'
                                                             )
                                                   ]) {
-                                                        def settingsXml = """
+                                                      script {
+                                                          def settingsXml = """
                                                               <settings>
                                                                 <servers>
                                                                   <server>
@@ -59,8 +60,9 @@ pipeline{
                                                                 </servers>
                                                               </settings>
                                                             """
-                                                            writeFile file: 'settings.xml', text: settingsXml.trim()
-                                                            sh 'mvn -s settings.xml clean test'
+                                                          writeFile file: 'settings.xml', text: settingsXml.trim()
+                                                          sh 'mvn -s settings.xml clean test'
+                                                      }
                                                   }                                        
                                         }
                               }
@@ -107,6 +109,7 @@ pipeline{
                                                                       passwordVariable: 'DOCKER_PASS'
                                                             )
                                                   ]) {
+                                                      script {
                                                           def authString = "${DOCKER_USER}:${DOCKER_PASS}".bytes.encodeBase64().toString()
                                                           def dockerConfig = """
                                                           {
@@ -125,6 +128,7 @@ pipeline{
                                                               --dockerfile=${dockerfilePath}/Dockerfile \
                                                               --destination=${DOCKER_REGISTRY}/${dockerImageName}:${version}
                                                           """
+                                                      }
                                                   }
                                         }
                               }
