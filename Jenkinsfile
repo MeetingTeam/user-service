@@ -11,6 +11,7 @@ def helmValueFile = "values.yaml"
 
 def dockerhubAccount = 'dockerhub'
 def githubAccount = 'github'
+def kanikoAccount = 'kaniko'
 
 def dockerImageName = 'hungtran679/mt_user-service'
 def dockerfilePath = '.'
@@ -85,28 +86,28 @@ pipeline{
                                         }
                               }
                     }
-                    // stage('Code analysis'){
-                    //           steps{
-                    //                     container('maven'){
-                    //                               withSonarQubeEnv('SonarCloud') {
-                    //                                         sh "mvn sonar:sonar -Dsonar.organization=${sonarCloudOrganization}"
-                    //                               }
-                    //                     }
-                    //           }
-                    // }
-                    // stage('Quality gate check') {
-                    //           steps {
-                    //                     timeout(time: 5, unit: 'MINUTES') {
-                    //                               waitForQualityGate(abortPipeline: true)
-                    //                     }
-                    //           }
-                    // }
+                    stage('Code analysis'){
+                              steps{
+                                        container('maven'){
+                                                  withSonarQubeEnv('SonarCloud') {
+                                                            sh "mvn sonar:sonar -Dsonar.organization=${sonarCloudOrganization}"
+                                                  }
+                                        }
+                              }
+                    }
+                    stage('Quality gate check') {
+                              steps {
+                                        timeout(time: 5, unit: 'MINUTES') {
+                                                  waitForQualityGate(abortPipeline: true)
+                                        }
+                              }
+                    }
                     stage('Build and push docker image'){
-                              // when{ branch mainBranch }
+                              when{ branch mainBranch }
                               steps{
                                         container('kaniko'){
                                                    withCredentials([
-                                                            string(credentialsId: 'kaniko', variable: 'KANIKO_AUTH')
+                                                            string(credentialsId: kanikoAccount, variable: 'KANIKO_AUTH')
                                                   ]) {
                                                       script {
                                                           def dockerConfig = """
