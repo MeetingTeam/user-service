@@ -106,23 +106,18 @@ pipeline{
                               steps{
                                         container('kaniko'){
                                                    withCredentials([
-                                                            usernamePassword(
-                                                                      credentialsId: dockerhubAccount, 
-                                                                      usernameVariable: 'DOCKER_USER', 
-                                                                      passwordVariable: 'DOCKER_PASS'
-                                                            )
+                                                            string(credentialsId: 'kaniko', variable: 'KANIKO_AUTH')
                                                   ]) {
                                                       script {
-                                                          def authString = "${DOCKER_USER}:${DOCKER_PASS}".bytes.encodeBase64().toString()
                                                           def dockerConfig = """
-                                                          {
-                                                            "auths": {
-                                                              "${DOCKER_REGISTRY}": {
-                                                                "auth": "${authString}"
+                                                            {
+                                                              "auths": {
+                                                                "${DOCKER_REGISTRY}": {
+                                                                  "auth": "${KANIKO_AUTH}"
+                                                                }
                                                               }
                                                             }
-                                                          }
-                                                          """
+                                                            """
                                                           writeFile file: 'config.json', text: dockerConfig.trim()
                                                           
                                                           sh """
