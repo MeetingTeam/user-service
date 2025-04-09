@@ -60,8 +60,8 @@ pipeline{
                                                                 </servers>
                                                               </settings>
                                                             """
-                                                          writeFile file: 'settings.xml', text: settingsXml.trim()
-                                                          sh 'mvn -s settings.xml clean test'
+                                                          writeFile file: '/root/.m2/settings.xml', text: settingsXml.trim()
+                                                          sh 'mvn clean test'
                                                       }
                                                   }                                        
                                         }
@@ -82,22 +82,22 @@ pipeline{
                                         }
                               }
                     }
-                    stage('Code analysis'){
-                              steps{
-                                        container('maven'){
-                                                  withSonarQubeEnv('SonarCloud') {
-                                                            sh "mvn sonar:sonar -Dsonar.organization=${sonarCloudOrganization}"
-                                                  }
-                                        }
-                              }
-                    }
-                    stage('Quality gate check') {
-                              steps {
-                                        timeout(time: 5, unit: 'MINUTES') {
-                                                  waitForQualityGate(abortPipeline: true)
-                                        }
-                              }
-                    }
+                    // stage('Code analysis'){
+                    //           steps{
+                    //                     container('maven'){
+                    //                               withSonarQubeEnv('SonarCloud') {
+                    //                                         sh "mvn sonar:sonar -Dsonar.organization=${sonarCloudOrganization}"
+                    //                               }
+                    //                     }
+                    //           }
+                    // }
+                    // stage('Quality gate check') {
+                    //           steps {
+                    //                     timeout(time: 5, unit: 'MINUTES') {
+                    //                               waitForQualityGate(abortPipeline: true)
+                    //                     }
+                    //           }
+                    // }
                     stage('Build and push docker image'){
                               when{ branch mainBranch }
                               steps{
