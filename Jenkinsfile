@@ -60,8 +60,11 @@ pipeline{
                                                                 </servers>
                                                               </settings>
                                                             """
-                                                          writeFile file: '/root/.m2/settings.xml', text: settingsXml.trim()
-                                                          sh 'mvn clean test'
+                                                          writeFile file: 'settings.xml', text: settingsXml.trim()
+                                                          sh '''
+                                                                mv settings.xml /root/.m2/settings.xml
+                                                                mvn clean test
+                                                              '''
                                                       }
                                                   }                                        
                                         }
@@ -120,9 +123,10 @@ pipeline{
                                                             }
                                                           }
                                                           """
-                                                          writeFile file: '/kaniko/.docker/config.json', text: dockerConfig.trim()
+                                                          writeFile file: 'config.json', text: dockerConfig.trim()
                                                           
                                                           sh """
+                                                            mv config.json /kaniko/.docker/config.json
                                                             /kaniko/executor \
                                                               --context=${dockerfilePath} \
                                                               --dockerfile=${dockerfilePath}/Dockerfile \
