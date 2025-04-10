@@ -190,7 +190,8 @@ pipeline{
                     try {
                         emailext(
                             subject: "Build Successful: ${currentBuild.fullDisplayName}",
-                            body: "The build has successfully completed."
+                            body: "The build has successfully completed.",
+                            to: "225250527@gm.uit.edu.vn"
                         )
                     } catch (Exception e) {
                         echo "SMTP email configuration is not found or failed: ${e.getMessage()}. Skipping email notification."
