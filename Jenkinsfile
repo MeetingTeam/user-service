@@ -39,16 +39,16 @@ pipeline{
           }
           
           stages{
-                      stage('Unit test stage'){
-                              steps{
-                                        container('maven'){
+                      stage('Setup credentials for maven'){
+                        steps {
+                                    container('maven'){
                                                   withCredentials([
                                                             usernamePassword(
                                                                       credentialsId: githubAccount, 
                                                                       passwordVariable: 'GIT_PASS', 
                                                                       usernameVariable: 'GIT_USER'
                                                             )
-                                                  ]) {
+                                                ]) {
                                                       script {
                                                           def settingsXml = """
                                                               <settings>
@@ -62,27 +62,23 @@ pipeline{
                                                               </settings>
                                                             """
                                                           writeFile file: 'settings.xml', text: settingsXml.trim()
-                                                          sh '''
-                                                                mv settings.xml /root/.m2/settings.xml
-                                                                mvn clean test
-                                                              '''
+                                                          sh 'mv settings.xml /root/.m2/settings.xml'
                                                       }
-                                                  }                                        
+                                                }                                        
+                                        }
+                                }
+                      }
+                      stage('Unit test stage'){
+                              steps{
+                                        container('maven'){
+                                            sh 'mvn clean test'                                     
                                         }
                               }
                     }
                     stage('Build jar file'){
                               steps{
                                         container('maven'){
-                                                   withCredentials([
-                                                            usernamePassword(
-                                                                      credentialsId: githubAccount, 
-                                                                      passwordVariable: 'GIT_PASS', 
-                                                                      usernameVariable: 'GIT_USER'
-                                                            )
-                                                  ]) {
-                                                            sh "mvn clean package -DskipTests=true"
-                                                  }
+                                                sh "mvn clean package -DskipTests=true"
                                         }
                               }
                     }
