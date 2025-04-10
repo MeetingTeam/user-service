@@ -138,7 +138,7 @@ pipeline{
                                         }
                               }
                     }
-                      stage('Check for changes in migration folder') {
+                    stage('Check for changes in migration folder') {
                               when{ branch mainBranch }
                               steps {
                                         script {
@@ -184,4 +184,30 @@ pipeline{
                               }
                     }
           }
+          post {
+               success {
+                script {
+                    try {
+                        emailext(
+                            subject: "Build Successful: ${currentBuild.fullDisplayName}",
+                            body: "The build has successfully completed."
+                        )
+                    } catch (Exception e) {
+                        echo "SMTP email configuration is not found or failed: ${e.getMessage()}. Skipping email notification."
+                    }
+                }
+            }
+            failure {
+                script {
+                    try {
+                        emailext(
+                            subject: "Build Failed: ${currentBuild.fullDisplayName}",
+                            body: "The build has failed. Please check the logs for more information."
+                        )
+                    } catch (Exception e) {
+                        echo "SMTP email configuration is not found or failed: ${e.getMessage()}. Skipping email notification."
+                    }
+                }
+            }
+      }
 }
