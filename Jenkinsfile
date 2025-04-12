@@ -1,13 +1,12 @@
 def baseRepoUrl = 'https://github.com/MeetingTeam'
 def mainBranch = 'main'
-def testBranch = 'test'
 
 def appRepoName = 'user-service'
 def appRepoUrl = "${baseRepoUrl}/${appRepoName}.git"
 
 def k8SRepoName = 'k8s-repo'
 def helmPath = "${k8SRepoName}/application/${appRepoName}"
-def helmValueFile = "values.yaml"
+def helmValueFile = "values.test.yaml"
 
 def dockerhubAccount = 'dockerhub'
 def githubAccount = 'github'
@@ -22,7 +21,7 @@ def dockerFlywayImageName = 'hungtran679/mt_flyway-user-service'
 def sonarCloudOrganization = 'meetingteam'
 
 
-def version = "v2.${BUILD_NUMBER}"
+def version = "v${BUILD_NUMBER}"
 
 pipeline{
          agent {
@@ -170,7 +169,7 @@ pipeline{
                                                   )
                                         ]) {
                                                   sh """
-                                                            git clone https://\${GIT_USER}:\${GIT_PASS}@github.com/MeetingTeam/${k8SRepoName}.git --branch ${testBranch}
+                                                            git clone https://\${GIT_USER}:\${GIT_PASS}@github.com/MeetingTeam/${k8SRepoName}.git --branch ${mainBranch}
                                                             cd ${helmPath}
                                                             sed -i 's|  tag: .*|  tag: "${version}"|' ${helmValueFile}
 
@@ -178,7 +177,7 @@ pipeline{
                                                             git config --global user.name "Jenkins"
                                                             git add .
                                                             git commit -m "feat: update application image of helm chart '${appRepoName}' to version ${version}"
-                                                            git push origin ${testBranch}
+                                                            git push origin ${mainBranch}
                                                   """		
 				                              }				
                               }
@@ -187,15 +186,11 @@ pipeline{
           post {
             failure {
                 script {
-                    try {
-                        emailext(
+                    emailext(
                             subject: "Build Failed: ${currentBuild.fullDisplayName}",
                             body: "The build has failed. Please check the logs for more information.",
                             to: '$DEFAULT_RECIPIENTS'
-                        )
-                    } catch (Exception e) {
-                        echo "SMTP email configuration is not found or failed: ${e.getMessage()}. Skipping email notification."
-                    }
+                      )
                 }
             }
       }
