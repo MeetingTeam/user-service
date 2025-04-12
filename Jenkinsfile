@@ -20,7 +20,7 @@ def dockerFlywayImageName = 'hungtran679/mt_flyway-user-service'
 
 def sonarCloudOrganization = 'meetingteam'
 
-
+def updateFlywayImage = false
 def version = "v${BUILD_NUMBER}"
 
 pipeline{
@@ -154,6 +154,7 @@ pipeline{
                                                                       --destination=\${DOCKER_REGISTRY}/${dockerFlywayImageName}:${version} \
                                                                 """
                                                             }
+                                                            updateFlywayImage = true
                                                   }
                                         }
                               }
@@ -186,12 +187,16 @@ pipeline{
           post {
             failure {
                 script {
-                    emailext(
+                  try{
+                      emailext(
                             subject: "Build Failed: ${currentBuild.fullDisplayName}",
                             body: "The build has failed. Please check the logs for more information.",
                             to: '$DEFAULT_RECIPIENTS'
                       )
+                  } catch (Exception e) {
+                        echo "SMTP email configuration is not found or failed: ${e.getMessage()}. Skipping email notification."
+                  }
                 }
             }
-      }
+          }
 }
