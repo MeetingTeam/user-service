@@ -1,6 +1,7 @@
 src/main/resources/*.properties
 HELP.md
 target/
+schema.sql
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

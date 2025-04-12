@@ -172,14 +172,15 @@ pipeline{
                                                   sh """
                                                             git clone https://\${GIT_USER}:\${GIT_PASS}@github.com/MeetingTeam/${k8SRepoName}.git --branch ${mainBranch}
                                                             cd ${helmPath}
-                                                            sed -i 's|  tag: .*|  tag: "${version}"|' ${helmValueFile}
+                                                            sed -i 's|^  tag: ".*"|  tag: "${version}"|' ${helmValueFile}
+                                                            ${updateFlywayImage ? "sed -i '/job:/,/tag:/s|^    tag: \".*\"|    tag: \"${version}\"|' ${helmValueFile}" : ""}
 
                                                             git config --global user.email "jenkins@gmail.com"
                                                             git config --global user.name "Jenkins"
                                                             git add .
                                                             git commit -m "feat: update application image of helm chart '${appRepoName}' to version ${version}"
-                                                            git push origin ${mainBranch}
-                                                  """		
+                                                            git push origin ${mainBranch}                                                    
+                                                  """
 				                              }				
                               }
                     }
