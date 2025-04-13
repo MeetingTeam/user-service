@@ -31,10 +31,7 @@ pipeline{
           }
           
           environment {
-                    DOCKER_REGISTRY = 'registry-1.docker.io'       
-
-                    GIT_PREVIOUS_COMMIT = sh(script: 'git rev-parse HEAD~1', returnStdout: true).trim()
-                    GIT_COMMIT = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()    
+                    DOCKER_REGISTRY = 'registry-1.docker.io'
           }
           
           stages{
@@ -141,7 +138,9 @@ pipeline{
                               when{ branch mainBranch }
                               steps {
                                         script {
-                                                  def changes = sh(script: "git diff --name-only ${GIT_PREVIOUS_COMMIT} ${GIT_COMMIT} -- ${migrationPath}", 
+                                                  def prevGitCommit = sh(script: 'git rev-parse HEAD~1', returnStdout: true).trim()
+                                                  def currGitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim() 
+                                                  def changes = sh(script: "git diff --name-only ${prevGitCommit} ${currGitCommit} -- ${migrationPath}", 
                                                                                           returnStdout: true).trim()
                                                   echo "changes: ${changes}"
                                                   if (changes){
