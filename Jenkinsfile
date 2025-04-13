@@ -172,7 +172,9 @@ pipeline{
                                                             git clone https://\${GIT_USER}:\${GIT_PASS}@github.com/MeetingTeam/${k8SRepoName}.git --branch ${mainBranch}
                                                             cd ${helmPath}
                                                             sed -i 's|^  tag: ".*"|  tag: "${version}"|' ${helmValueFile}
-                                                            ${updateFlywayImage ? "sed -i '/job:/,/tag:/s|^    tag: \".*\"|    tag: \"${version}\"|' ${helmValueFile}" : ""}
+                                                            if [ "${updateFlywayImage}" == "true" ]; then
+                                                                  sed -i '/job:/,/tag:/s|^    tag: ".*"|    tag: "${version}"|' ${helmValueFile}
+                                                            fi
 
                                                             git config --global user.email "jenkins@gmail.com"
                                                             git config --global user.name "Jenkins"
