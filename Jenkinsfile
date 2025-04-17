@@ -12,16 +12,14 @@ def dockerhubAccount = 'dockerhub'
 def githubAccount = 'github'
 def kanikoAccount = 'kaniko'
 
-def dockerImageName = 'hungtran679/mt_user-service'
-def dockerfilePath = '.'
+def imageVersion = "${appVersion}-${BUILD_NUMBER}"
 
 def migrationPath = 'src/main/resources/migrations'
-def dockerFlywayImageName = 'hungtran679/mt_flyway-user-service'
+def updateFlywayImage = false
 
 def sonarCloudOrganization = 'meetingteam'
 
-def updateFlywayImage = false
-def version = "v${BUILD_NUMBER}"
+def trivyReportFile = 'trivy_report.html'
 
 pipeline{
          agent {
@@ -32,6 +30,11 @@ pipeline{
           
           environment {
                     DOCKER_REGISTRY = 'registry-1.docker.io'
+                    DOCKER_IMAGE_NAME = 'hungtran679/mt_chat-service'
+                    DOCKER_IMAGE = "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${imageVersion}"
+                    
+                   DOCKER_FLYWAY_IMAGE_NAME = 'hungtran679/mt_flyway-user-service'
+                   DOCKER_FLYWAY_IMAGE = "${DOCKER_REGISTRY}/${DOCKER_FLYWAY_IMAGE_NAME}:${imageVersion}"      
           }
           
           stages{
@@ -116,9 +119,9 @@ pipeline{
                                                           sh """
                                                             mv config.json /kaniko/.docker/config.json
                                                             /kaniko/executor \
-                                                              --context=${dockerfilePath} \
-                                                              --dockerfile=${dockerfilePath}/Dockerfile \
-                                                              --destination=${DOCKER_REGISTRY}/${dockerImageName}:${version}
+                                                              --context=. \
+                                                              --dockerfile=Dockerfile \
+                                                              --destination=${DOCKER_IMAGE}
                                                           """
                                                       }
                                                   }
@@ -129,8 +132,11 @@ pipeline{
                               when{ branch mainBranch }
                               steps{
                                         container('trivy'){
-                                                  sh "trivy image --timeout 15m  --scanners vuln \${DOCKER_REGISTRY}/${dockerImageName}:${version}"
-                                                  //sh "trivy image --timeout 15m --severity HIGH,CRITICAL --exit-code 1 \${DOCKER_REGISTRY}/${dockerImageName}:${version}"
+                                                sh """
+                                                    wget -O html.tpl https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+                                                    trivy image --format template --template \"@html.tpl\" -o ${trivyReportFile} \
+                                                        --timeout 15m --scanners vuln ${DOCKER_IMAGE}
+                                                """
                                         }
                               }
                     }
@@ -148,9 +154,9 @@ pipeline{
                                                             container('kaniko'){
                                                                 sh """
                                                                       /kaniko/executor \
-                                                                      --context=${dockerfilePath} \
-                                                                      --dockerfile=${dockerfilePath}/Flyway-dockerfile \
-                                                                      --destination=\${DOCKER_REGISTRY}/${dockerFlywayImageName}:${version} \
+                                                                      --context=. \
+                                                                      --dockerfile=Flyway-dockerfile \
+                                                                      --destination=${DOCKER_FLYWAY_IMAGE}
                                                                 """
                                                             }
                                                             updateFlywayImage = true
@@ -171,15 +177,15 @@ pipeline{
                                                   sh """
                                                             git clone https://\${GIT_USER}:\${GIT_PASS}@github.com/MeetingTeam/${k8SRepoName}.git --branch ${mainBranch}
                                                             cd ${helmPath}
-                                                            sed -i 's|^  tag: ".*"|  tag: "${version}"|' ${helmValueFile}
+                                                            sed -i 's|^  tag: ".*"|  tag: "${versionImage}"|' ${helmValueFile}
                                                             if [ "${updateFlywayImage}" == "true" ]; then
-                                                                  sed -i '/job:/,/tag:/s|^    tag: ".*"|    tag: "${version}"|' ${helmValueFile}
+                                                                  sed -i '/job:/,/tag:/s|^    tag: ".*"|    tag: "${versionImage}"|' ${helmValueFile}
                                                             fi
 
                                                             git config --global user.email "jenkins@gmail.com"
                                                             git config --global user.name "Jenkins"
                                                             git add .
-                                                            git commit -m "feat: update application image of helm chart '${appRepoName}' to version ${version}"
+                                                            git commit -m "feat: update application image of helm chart '${appRepoName}' to version ${versionImage}"
                                                             git push origin ${mainBranch}                                                    
                                                   """
 				                              }				
@@ -187,18 +193,22 @@ pipeline{
                     }
           }
           post {
-            failure {
-                script {
-                  try{
-                      emailext(
-                            subject: "Build Failed: ${currentBuild.fullDisplayName}",
-                            body: "The build has failed. Please check the logs for more information.",
-                            to: '$DEFAULT_RECIPIENTS'
-                      )
-                  } catch (Exception e) {
-                        echo "SMTP email configuration is not found or failed: ${e.getMessage()}. Skipping email notification."
-                  }
+                always {
+                      archiveArtifacts artifacts: trivyReportFile, allowEmptyArchive: true, fingerprint: true
                 }
-            }
-          }
+                success {
+                        emailext(
+                            subject: "Build Success: ${currentBuild.fullDisplayName}",
+                            body: "The build completed successfully!. Check the logs and artifacts if needed.",
+                            to: '22520527@gm.uit.edu.vn'
+                        )
+                }
+                failure {
+                        emailext(
+                                    subject: "Build Failed: ${currentBuild.fullDisplayName}",
+                                    body: "The build has failed. Please check the logs for more information.",
+                                    to: '22520527@gm.uit.edu.vn'
+                            )
+                }
+        }
 }

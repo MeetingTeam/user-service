@@ -57,4 +57,9 @@ public class UserController {
     public ResponseEntity<String> getEmail(){
         return ResponseEntity.ok(userService.getEmail());
     }
+
+    @GetMapping("/version")
+    public ResponseEntity<String> getVersion(){
+        return ResponseEntity.ok("v1.0");
+    }
 }
