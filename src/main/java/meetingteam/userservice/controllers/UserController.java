@@ -25,7 +25,6 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("isAuthenticated()")
     @PatchMapping
     public ResponseEntity<ResUserDto> updateUser(
             @Valid @RequestBody UpdateUserDto userDto){
@@ -56,10 +55,5 @@ public class UserController {
     @GetMapping("/private/email")
     public ResponseEntity<String> getEmail(){
         return ResponseEntity.ok(userService.getEmail());
-    }
-
-    @GetMapping("/version")
-    public ResponseEntity<String> getVersion(){
-        return ResponseEntity.ok("v1.0");
     }
 }

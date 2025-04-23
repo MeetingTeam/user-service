@@ -2,6 +2,7 @@ package meetingteam.userservice.services.impls;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import meetingteam.commonlibrary.exceptions.BadRequestException;
 import meetingteam.commonlibrary.exceptions.InternalServerException;
 import meetingteam.commonlibrary.utils.AuthUtil;
@@ -28,6 +29,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
     private final CognitoIdentityProviderClient cognitoClient;
     private final FileService fileService;
@@ -60,6 +62,8 @@ public class UserServiceImpl implements UserService {
             user.setLastActive(LocalDateTime.now());
             userRepo.save(user);
         } catch (UsernameExistsException e) {
+            log.error(e.getMessage());
+            
             if(userRepo.existsByEmail(userDto.getEmail()))
                 throw new BadRequestException("Email already exists");
             else {
@@ -71,8 +75,10 @@ public class UserServiceImpl implements UserService {
                 throw new InternalServerException("Sign up failed. Please try again");
             }
         } catch (InvalidParameterException e) {
+            log.error(e.getMessage());
             throw new BadRequestException("Invalid parameters");
         } catch (Exception e) {
+            log.error(e.getMessage());
             throw new InternalServerException("Sign up failed. Please try again");
         }
     }
