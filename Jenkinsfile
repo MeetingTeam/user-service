@@ -204,19 +204,5 @@ pipeline{
                 always {
                       archiveArtifacts artifacts: trivyReportFile, allowEmptyArchive: true, fingerprint: true
                 }
-                success {
-                        emailext(
-                            subject: "Build Success: ${currentBuild.fullDisplayName}",
-                            body: "The build completed successfully!. Check the logs and artifacts if needed.",
-                            to: '22520527@gm.uit.edu.vn'
-                        )
-                }
-                failure {
-                        emailext(
-                                    subject: "Build Failed: ${currentBuild.fullDisplayName}",
-                                    body: "The build has failed. Please check the logs for more information.",
-                                    to: '22520527@gm.uit.edu.vn'
-                            )
-                }
         }
 }
