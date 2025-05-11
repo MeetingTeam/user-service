@@ -14,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/user")
+@PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
@@ -31,7 +32,6 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(userDto));
     }
 
-    @PreAuthorize("isAuthenticated()")
     @PostMapping("/private/user-status")
     public ResponseEntity<ResUserDto> changeUserStatus(
             @RequestParam("isOnline") boolean isOnline){
@@ -44,16 +44,20 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserInfo());
     }
 
-    @PreAuthorize("isAuthenticated()")
     @PostMapping("/private/by-ids")
     public ResponseEntity<List<ResUserDto>> getUsersByIds(
             @RequestBody List<String> userIds){
         return ResponseEntity.ok(userService.getUsersByIds(userIds));
     }
 
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/private/email")
     public ResponseEntity<String> getEmail(){
         return ResponseEntity.ok(userService.getEmail());
+    }
+
+    @GetMapping("/version")
+    @PreAuthorize("isAnonymous()")
+    public ResponseEntity<String> getVersion(){
+        return ResponseEntity.ok("version 1.0");
     }
 }
