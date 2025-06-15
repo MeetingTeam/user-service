@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import meetingteam.commonlibrary.dtos.SocketDto;
 import meetingteam.commonlibrary.exceptions.InternalServerException;
 import meetingteam.userservice.services.RabbitmqService;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RabbitmqServiceImpl implements RabbitmqService {
     private final RabbitTemplate rabbitTemplate;
     private final ObjectMapper objectMapper=new ObjectMapper()
@@ -31,7 +33,7 @@ public class RabbitmqServiceImpl implements RabbitmqService {
             rabbitTemplate.convertAndSend(exchangeName, dest, jsonData);
         }
         catch(Exception e){
-            throw new InternalServerException("Unable to send message");
+            log.error(e.getMessage());
         }
     }
 }
