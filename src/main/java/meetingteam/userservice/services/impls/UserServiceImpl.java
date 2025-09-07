@@ -7,7 +7,6 @@ import meetingteam.commonlibrary.exceptions.BadRequestException;
 import meetingteam.commonlibrary.exceptions.InternalServerException;
 import meetingteam.commonlibrary.utils.AuthUtil;
 import meetingteam.commonlibrary.utils.FileUtil;
-import meetingteam.userservice.contraints.WebsocketTopics;
 import meetingteam.userservice.dtos.User.CreateUserDto;
 import meetingteam.userservice.dtos.User.ResUserDto;
 import meetingteam.userservice.dtos.User.UpdateUserDto;

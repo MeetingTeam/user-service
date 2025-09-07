@@ -45,6 +45,7 @@ public class UserController {
     }
 
     @PostMapping("/private/by-ids")
+    @PreAuthorize("isAnonymous()")
     public ResponseEntity<List<ResUserDto>> getUsersByIds(
             @RequestBody List<String> userIds){
         return ResponseEntity.ok(userService.getUsersByIds(userIds));
