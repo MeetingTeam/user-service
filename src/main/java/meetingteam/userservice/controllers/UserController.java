@@ -2,6 +2,8 @@ package meetingteam.userservice.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import meetingteam.commonlibrary.exceptions.InternalServerException;
+import meetingteam.userservice.configs.AnomalyConfig;
 import meetingteam.userservice.dtos.User.CreateUserDto;
 import meetingteam.userservice.dtos.User.ResUserDto;
 import meetingteam.userservice.dtos.User.UpdateUserDto;
@@ -18,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final AnomalyConfig anomalyConfig;
 
     @PostMapping
     public ResponseEntity<ResUserDto> addUser(
@@ -41,14 +44,20 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<ResUserDto> getUserInfo(){
-        return ResponseEntity.ok(userService.getUserInfo());
+        if(anomalyConfig.enableAppError()){
+            throw new InternalServerException("Anomaly test error");
+        }
+        else return ResponseEntity.ok(userService.getUserInfo());
     }
 
     @PostMapping("/private/by-ids")
     @PreAuthorize("isAnonymous()")
     public ResponseEntity<List<ResUserDto>> getUsersByIds(
             @RequestBody List<String> userIds){
-        return ResponseEntity.ok(userService.getUsersByIds(userIds));
+        if(anomalyConfig.enableAppError()){
+            throw new InternalServerException("Anomaly test error");
+        }
+        else return ResponseEntity.ok(userService.getUsersByIds(userIds));
     }
 
     @GetMapping("/private/email")
@@ -56,7 +65,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getEmail());
     }
 
-    @GetMapping("/version")
+    @GetMapping("/anomaly/version")
     @PreAuthorize("isAnonymous()")
     public ResponseEntity<String> getVersion(){
         return ResponseEntity.ok("version 1.0");

@@ -1,0 +1,32 @@
+FROM openjdk:17-jdk-alpine
+
+# Install stress-ng (requires root)
+USER root
+RUN apk add --no-cache stress-ng iproute2
+
+# Change directory
+WORKDIR /app
+
+# Download the OTel Java Agent
+ARG OTEL_AGENT_VERSION=2.8.0
+ARG OTEL_AGENT_JAR=/app/opentelemetry-javaagent.jar
+ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar $OTEL_AGENT_JAR
+
+# Copy war file and start-app.sh script
+COPY target/user-service-0.0.1-SNAPSHOT.war user-service.war
+COPY start-app.sh /app/start-app.sh
+RUN chmod +x /app/start-app.sh
+
+# Environment variables
+ENV ENABLE_STRESS_NG=false
+ENV STRESS_ARGS="--cpu 1"
+
+ENV ENABLE_TC=false
+ENV TC_LOSS_PERCENT=10
+ENV TC_DELAY_TIME=1000
+
+# Run app
+ENTRYPOINT ["/app/start-app.sh"]
+
+# Expose port 8080
+EXPOSE 8080

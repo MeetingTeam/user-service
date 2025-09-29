@@ -17,7 +17,7 @@ RUN chown -R user_service:user_service /app
 USER user_service
 
 # Run app
-ENTRYPOINT ["sh","-c","java -javaagent:opentelemetry-javaagent.jar -jar -Dspring.config.location=${CONFIG_PATH} user-service.war"]
+ENTRYPOINT ["sh","-c","java -javaagent:opentelemetry-javaagent.jar -Dspring.config.location=${CONFIG_PATH} -jar user-service.war"]
 
 ## Expose port 8080
 EXPOSE 8080
