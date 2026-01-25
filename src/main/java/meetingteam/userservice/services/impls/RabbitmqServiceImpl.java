@@ -31,22 +31,13 @@ public class RabbitmqServiceImpl implements RabbitmqService {
     @Override
     public void sendToUser(String userId, String topic, Object payload) {
         try{
-            if(anomalyConfig.enableMissSpan()){
-                AnomalyUtil.markAnomalySpan(AnomalyTypes.MISS_SPAN);
+            if(anomalyConfig.enableDownServices() && anomalyConfig.downServicesList().contains("websocket-service")){
+                AnomalyUtil.markAnomalySpan(AnomalyTypes.DOWN_SERVICES);
             }
-            else{
-                int loopNum = 1;
-                if(anomalyConfig.enableFanoutCall()){
-                    loopNum = 10;
-                    AnomalyUtil.markAnomalySpan(AnomalyTypes.FAN_OUT_CALL);
-                }
-                for(int i=0; i<loopNum; i++){
-                    String dest="/topic/user."+userId;
-                    SocketDto socketDto = new SocketDto(dest, topic, payload);
-                    String jsonData = objectMapper.writeValueAsString(socketDto);
-                    rabbitTemplate.convertAndSend(exchangeName,dest, jsonData);
-                }
-            }
+            String dest="/topic/user."+userId;
+            SocketDto socketDto = new SocketDto(dest, topic, payload);
+            String jsonData = objectMapper.writeValueAsString(socketDto);
+            rabbitTemplate.convertAndSend(exchangeName,dest, jsonData);
         }
         catch(Exception e){
             log.error(e.getMessage());
